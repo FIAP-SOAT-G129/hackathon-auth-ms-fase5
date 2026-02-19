@@ -40,6 +40,5 @@ consumers:
   - username: auth-user
     jwt_secrets:
       - key: "hackathon-issuer"
-        secret: "Ym9sdGEtZGUtaGFja2F0aG9uLWVzdHJlcmEtbWFpcy1kZS0zMi1jYXJhY3RlcmVz"
+        secret: "bolta-de-hackathon-estrera-mais-de-32-caracteres"
         algorithm: HS256
-        secret_is_base64: true
