@@ -39,6 +39,21 @@ Para facilitar o acesso aos serviços, utilize a tabela abaixo:
 
 ---
 
+## 🛣 Rotas do API Gateway (Kong)
+
+Através da porta **8000**, o Kong roteia as requisições da seguinte forma:
+
+| Caminho    | Serviço de Destino | Descrição                              |
+|------------|--------------------|----------------------------------------|
+| `/auth`    | `auth-service`     | Rotas de autenticação (login/register) |
+| `/videos`  | `video-service`    | Rotas de gerenciamento de vídeos       |
+
+**Exemplos de acesso:**
+*   **Autenticação:** `http://localhost:8000/auth/login`
+*   **Vídeos:** `http://localhost:8000/videos` (Requer JWT)
+
+---
+
 ## ▶️ Como Executar o Projeto
 
 ### Pré-requisitos
