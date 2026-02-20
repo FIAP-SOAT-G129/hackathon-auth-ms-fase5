@@ -1,8 +1,11 @@
-# 🔐 Fastfood — Microserviço de Autenticação
+# 🔐 Hackathon — Microserviço de Autenticação
 
 [![Release - Build, Quality Gate and Deploy](https://github.com/FIAP-SOAT-G129/hackathon-auth-ms-fase5/actions/workflows/release.yml/badge.svg)](https://github.com/FIAP-SOAT-G129/hackathon-auth-ms-fase5/actions/workflows/release.yml)
 
-Este repositório implementa o **Microserviço de Autenticação** da aplicação **Fastfood**, desenvolvido em **Java 21 com Spring Boot 3**. Ele é responsável por gerenciar o registro de usuários, autenticação e geração de tokens JWT para acesso seguro aos demais microserviços da plataforma.
+![Coverage](.github/badges/jacoco.svg)
+![Branches](.github/badges/branches.svg)
+
+Este repositório implementa o **Microserviço de Autenticação**, desenvolvido em **Java 21 com Spring Boot 3**. Ele é responsável por gerenciar o registro de usuários, autenticação e geração de tokens JWT para acesso seguro aos demais microserviços da plataforma.
 
 ---
 
@@ -28,8 +31,8 @@ Fornecer uma **API RESTful** robusta e segura para o gerenciamento de usuários 
 
 ## 🧩 Domínios Gerenciados
 
-| Entidade | Descrição |
-|:---------|:-----------------------------------------------------------------------------------|
+| Entidade | Descrição                                                                      |
+|:---------|:-------------------------------------------------------------------------------|
 | **User** | Informações do usuário, incluindo credenciais de acesso e perfis de segurança. |
 
 ---
@@ -144,12 +147,6 @@ mvn clean verify
 ---
 
 ## 👥 Equipe
-
-- Daiana Menezes
-- Kelven Brandão
-- Luan Barbosa
-- Mario Mendonça
-- Thiago Dias
 
 Desenvolvido pela equipe **FIAP SOAT - G129** como parte do projeto de Arquitetura de Software.
 
