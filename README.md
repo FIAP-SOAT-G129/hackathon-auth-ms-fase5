@@ -24,6 +24,36 @@ Este projeto demonstra a configuração e execução de um **API Gateway utiliza
 
 ---
 
+## 🚦 Mapeamento de Portas
+
+Para facilitar o acesso aos serviços, utilize a tabela abaixo:
+
+| Serviço          | Porta Host | Descrição                                      |
+|------------------|------------|------------------------------------------------|
+| **Kong Proxy**   | `8000`     | **Ponto de entrada do API Gateway**            |
+| **Kong Admin**   | `8001`     | API de administração do Kong                   |
+| **Auth Service** | `8080`     | Acesso direto ao microserviço de Autenticação  |
+| **Video Service**| `8081`     | Acesso direto ao microserviço de Vídeos        |
+
+> **Importante:** Quando você acessa `http://localhost:8080`, você está falando diretamente com o `auth-service`. Para passar pelo **Kong Gateway**, você deve utilizar a porta `8000`.
+
+---
+
+## 🛣 Rotas do API Gateway (Kong)
+
+Através da porta **8000**, o Kong roteia as requisições da seguinte forma:
+
+| Caminho    | Serviço de Destino | Descrição                              |
+|------------|--------------------|----------------------------------------|
+| `/auth`    | `auth-service`     | Rotas de autenticação (login/register) |
+| `/videos`  | `video-service`    | Rotas de gerenciamento de vídeos       |
+
+**Exemplos de acesso:**
+*   **Autenticação:** `http://localhost:8000/auth/login`
+*   **Vídeos:** `http://localhost:8000/videos` (Requer JWT)
+
+---
+
 ## ▶️ Como Executar o Projeto
 
 ### Pré-requisitos
