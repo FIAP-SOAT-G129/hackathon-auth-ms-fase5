@@ -1,162 +1,157 @@
-# API Gateway com Kong + Auth Service (Java)
+# 🔐 Hackathon — Microserviço de Autenticação
 
-## 📌 Visão Geral
+[![Release - Build, Quality Gate and Deploy](https://github.com/FIAP-SOAT-G129/hackathon-auth-ms-fase5/actions/workflows/release.yml/badge.svg)](https://github.com/FIAP-SOAT-G129/hackathon-auth-ms-fase5/actions/workflows/release.yml)
 
-Este projeto demonstra a configuração e execução de um **API Gateway utilizando Kong**, integrado a um **Serviço de Autenticação em Java (Spring Boot)**, seguindo **Arquitetura Hexagonal**. A infraestrutura é orquestrada com **Docker Compose**.
+![Coverage](.github/badges/jacoco.svg)
+![Branches](.github/badges/branches.svg)
+
+Este repositório implementa o **Microserviço de Autenticação**, desenvolvido em **Java 21 com Spring Boot 3**. Ele é responsável por gerenciar o registro de usuários, autenticação e geração de tokens JWT para acesso seguro aos demais microserviços da plataforma.
 
 ---
 
-## 🗂 Estrutura do Projeto
+## 🧾 Objetivo do Projeto
+
+Fornecer uma **API RESTful** robusta e segura para o gerenciamento de usuários e autenticação, incluindo funcionalidades de registro, login e validação de tokens JWT. Este serviço é a porta de entrada para a segurança da aplicação Fastfood, garantindo que apenas usuários autorizados possam interagir com os recursos protegidos.
+
+> 📚 **Wiki do Projeto:** <br/> > https://github.com/FIAP-SOAT-G129/.github/wiki/Fase-5
+
+---
+
+## 🚀 Tecnologias Utilizadas
+
+- **Java 21**
+- **Spring Boot 3**
+- **Spring Security** (Autenticação e Autorização)
+- **JWT (JSON Web Tokens)** (Geração e validação de tokens)
+- **PostgreSQL** (Persistência de dados)
+- **Maven** (Gerenciamento de dependências)
+- **Docker & Docker Compose** (Containerização e orquestração)
+
+---
+
+## 🧩 Domínios Gerenciados
+
+| Entidade | Descrição                                                                      |
+|:---------|:-------------------------------------------------------------------------------|
+| **User** | Informações do usuário, incluindo credenciais de acesso e perfis de segurança. |
+
+---
+
+## 🧠 Arquitetura
+
+O serviço segue os princípios da **Arquitetura Hexagonal (Ports and Adapters)**, garantindo:
+
+- Independência entre camadas
+- Facilidade de manutenção e evolução
+- Testabilidade e baixo acoplamento
+- Separação entre regras de negócio e frameworks externos
+
+Estrutura do projeto:
+
+```
+src/
+ ├── main/
+ │   ├── java/com/hackathon/
+ │   │   ├── adapter/
+ │   │   │   ├── in/                        # Adapters de entrada (Controllers, DTOs)
+ │   │   │   │   ├── controller/
+ │   │   │   │   └── dto/
+ │   │   │   └── out/                       # Adapters de saída (JPA, Repositórios)
+ │   │   │       ├── repository/
+ │   │   │
+ │   │   ├── application/
+ │   │   │   └── usecase/                   # Casos de uso (regras de aplicação)
+ │   │   │
+ │   │   ├── config/                        # Configurações (Spring Security, JWT)
+ │   │   │
+ │   │   ├── domain/                        # Núcleo do domínio (regras puras de negócio)
+ │   │   │   ├── entity/
+ │   │   │   └── repository/                # Interfaces (ports)
+ │   │   │
+ │   │   └── AuthServiceApplication.java    # Classe principal da aplicação
+ │   │
+ │   └── resources/
+ │       └── application.yml                # Configurações da aplicação
+ │
+ └── test/                                  # Testes unitários
+```
+
+---
+
+## ⚙️ Como Rodar o Projeto
+
+### ✅ Pré-requisitos
+- `Java 21` (opcional, para rodar fora do container)
+- `Maven` (opcional, para rodar fora do container)
+- `Docker` (para rodar em container)
+- `Docker Compose` (para orquestrar containers)
+
+### 🔧 Configuração
+
+A aplicação já vem configurada com valores padrão no `application.yml` para funcionar com o Docker Compose. Caso deseje alterar, as principais variáveis de ambiente são:
+
+```env
+APP_PORT=8080
+
+DB_HOST=db
+DB_PORT=5432
+DB_NAME=auth_db
+DB_USER=user
+DB_PASSWORD=password
+
+JWT_SECRET=q3s6v9y$B&E)H@McQfTjWnZr4u7x!A%C
+JWT_EXPIRATION=3600000
+JWT_ISSUER=hackathon-issuer
+```
+
+### 🐳 Executando o projeto com Docker Compose
+
+No terminal, navegue até a raiz do projeto e execute:
 
 ```bash
-.
-├── auth-service/        # Serviço de Autenticação (Spring Boot + Arquitetura Hexagonal)
-├── kong/                # Configurações do Kong Gateway (kong.yml)
-├── docker-compose.yml   # Orquestração dos containers
-└── README.md
+docker-compose up --build
 ```
 
-### Descrição dos componentes
+A aplicação estará disponível em: http://localhost:8080
 
-* **auth-service/**: API responsável por cadastro, login e validação de usuários.
-* **kong/**: Contém o arquivo `kong.yml` com rotas e plugins (JWT, Rate Limit, etc.).
-* **docker-compose.yml**: Responsável por subir PostgreSQL, Kong Gateway e o Auth Service.
+Os serviços de infraestrutura estarão acessíveis em:
+- **PostgreSQL:** `localhost:5432`
 
----
+#### ⏹️ Parando os containers
 
-## 🚦 Mapeamento de Portas
-
-Para facilitar o acesso aos serviços, utilize a tabela abaixo:
-
-| Serviço          | Porta Host | Descrição                                      |
-|------------------|------------|------------------------------------------------|
-| **Kong Proxy**   | `8000`     | **Ponto de entrada do API Gateway**            |
-| **Kong Admin**   | `8001`     | API de administração do Kong                   |
-| **Auth Service** | `8080`     | Acesso direto ao microserviço de Autenticação  |
-| **Video Service**| `8081`     | Acesso direto ao microserviço de Vídeos        |
-
-> **Importante:** Quando você acessa `http://localhost:8080`, você está falando diretamente com o `auth-service`. Para passar pelo **Kong Gateway**, você deve utilizar a porta `8000`.
-
----
-
-## 🛣 Rotas do API Gateway (Kong)
-
-Através da porta **8000**, o Kong roteia as requisições da seguinte forma:
-
-| Caminho    | Serviço de Destino | Descrição                              |
-|------------|--------------------|----------------------------------------|
-| `/auth`    | `auth-service`     | Rotas de autenticação (login/register) |
-| `/videos`  | `video-service`    | Rotas de gerenciamento de vídeos       |
-
-**Exemplos de acesso:**
-*   **Autenticação:** `http://localhost:8000/auth/login`
-*   **Vídeos:** `http://localhost:8000/videos` (Requer JWT)
-
----
-
-## ▶️ Como Executar o Projeto
-
-### Pré-requisitos
-
-* Docker
-* Docker Compose
-
----
-
-### Passo 1: Subir a Infraestrutura
-
-Na raiz do projeto, execute:
+Para parar e remover os containers, execute:
 
 ```bash
-docker compose up -d
-```
-
-Esse comando irá iniciar:
-
-* PostgreSQL
-* Kong Gateway
-* Auth Service (Java)
-
----
-
-### Passo 2: Verificar o Kong Gateway
-
-O Kong carrega automaticamente as configurações definidas em `kong/kong.yml`.
-
-Para validar se os serviços e rotas foram criados corretamente, acesse a **API de Administração do Kong**:
-
-```
-http://localhost:8001/services
+docker-compose down
 ```
 
 ---
 
-## 🔐 Testando o Fluxo de Autenticação
+## 🧪 Testes e Qualidade de Código
 
-### 1️⃣ Cadastro de Usuário
+O projeto adota boas práticas de testes e qualidade de código, com foco em cobertura e comportamento previsível. Inclui testes de unidade utilizando:
+
+- **JUnit 5**
+- **Mockito**
+
+### ▶️ Executando os testes
 
 ```bash
-curl -X POST http://localhost:8000/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "usuario1",
-    "email": "user@test.com",
-    "password": "senha123"
-  }'
+# Executar todos os testes
+mvn test
+
+# Executar testes com relatório de cobertura
+mvn clean verify
 ```
 
 ---
 
-### 2️⃣ Login (Obter Token JWT)
+## 👥 Equipe
 
-```bash
-curl -X POST http://localhost:8000/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "usuario1",
-    "password": "senha123"
-  }'
-```
-
-A resposta retornará um **JWT**, que será utilizado para acessar rotas protegidas.
+Desenvolvido pela equipe **FIAP SOAT - G129** como parte do projeto de Arquitetura de Software.
 
 ---
 
-### 3️⃣ Acessar Rota Protegida
+## 📄 Licença
 
-Substitua `<TOKEN_AQUI>` pelo token recebido no login:
-
-```bash
-curl -H "Authorization: Bearer <TOKEN_AQUI>" \
-  http://localhost:8000/auth/me
-```
-
----
-
-## 🧠 Detalhes da Implementação
-
-### 🧱 Arquitetura
-
-* **Arquitetura Hexagonal (Ports and Adapters)**:
-
-    * **Domínio**: regras de negócio
-    * **Aplicação**: casos de uso
-    * **Adaptadores**: Web (REST) e Persistência (Banco)
-
-### 🔐 Segurança
-
-* O **Kong valida o JWT** antes de encaminhar a requisição para o microserviço.
-* O Auth Service recebe apenas requisições autenticadas.
-
-### 🚦 Rate Limit
-
-* Configurado no Kong
-* Limite: **10 requisições por minuto** para o serviço de autenticação
-
----
-
-## ✅ Observações Finais
-
-* Todas as chamadas externas devem passar pelo **API Gateway (porta 8000)**.
-* A API de administração do Kong fica disponível na **porta 8001**.
-* Este projeto serve como base para arquiteturas de **microserviços com gateway centralizado**.
+Este projeto é parte de um trabalho acadêmico da FIAP.
