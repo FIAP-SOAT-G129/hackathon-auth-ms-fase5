@@ -14,9 +14,6 @@ public class RegisterUserUseCase {
     private final PasswordEncoder passwordEncoder;
 
     public User execute(User user) {
-        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
-            throw new UserAlreadyExistsException("Username already exists");
-        }
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new UserAlreadyExistsException("Email already exists");
         }

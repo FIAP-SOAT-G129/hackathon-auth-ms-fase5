@@ -9,7 +9,7 @@ public class UserMapper {
         if (entity == null) return null;
         return User.builder()
                 .id(entity.getId())
-                .username(entity.getUsername())
+                .name(entity.getName())
                 .email(entity.getEmail())
                 .password(entity.getPassword())
                 .build();
@@ -19,7 +19,7 @@ public class UserMapper {
         if (domain == null) return null;
         return UserJpaEntity.builder()
                 .id(domain.getId())
-                .username(domain.getUsername())
+                .name(domain.getName())
                 .email(domain.getEmail())
                 .password(domain.getPassword())
                 .build();

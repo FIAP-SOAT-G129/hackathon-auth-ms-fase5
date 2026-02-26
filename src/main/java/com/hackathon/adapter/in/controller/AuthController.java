@@ -4,12 +4,12 @@ import com.hackathon.adapter.in.dto.*;
 import com.hackathon.application.usecase.GetUserUseCase;
 import com.hackathon.application.usecase.LoginUserUseCase;
 import com.hackathon.application.usecase.RegisterUserUseCase;
+import com.hackathon.config.AuthenticationFilter;
 import com.hackathon.domain.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,7 +23,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@Valid @RequestBody UserRegistrationRequest request) {
         User user = User.builder()
-                .username(request.getUsername())
+                .name(request.getName())
                 .email(request.getEmail())
                 .password(request.getPassword())
                 .build();
@@ -33,29 +33,28 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        String token = loginUserUseCase.execute(request.getUsername(), request.getPassword());
+        String token = loginUserUseCase.execute(request.getEmail(), request.getPassword());
         return ResponseEntity.ok(new LoginResponse(token));
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> me() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        User user = getUserUseCase.execute(username);
+    public ResponseEntity<UserResponse> me(@AuthenticationPrincipal AuthenticationFilter.UserPrincipal principal) {
+        if(principal == null) return ResponseEntity.status(401).build();
+        
+        User user = getUserUseCase.execute(Long.valueOf(principal.id()));
         return ResponseEntity.ok(toResponse(user));
     }
 
     @GetMapping("/users/{id}")
     public ResponseEntity<UserResponse> getUser(@PathVariable Long id) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = getUserUseCase.execute(id, username);
+        User user = getUserUseCase.execute(id);
         return ResponseEntity.ok(toResponse(user));
     }
 
     private UserResponse toResponse(User user) {
         return UserResponse.builder()
                 .id(user.getId())
-                .username(user.getUsername())
+                .name(user.getName())
                 .email(user.getEmail())
                 .build();
     }
