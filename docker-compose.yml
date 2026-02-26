@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   auth-api:
     build: .
@@ -5,35 +7,37 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - APP_PORT=8080
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_NAME=${DB_NAME:-auth_db}
-      - DB_USER=${DB_USER:-postgres}
-      - DB_PASSWORD=${DB_PASSWORD:-password}
-      - JWT_SECRET=${JWT_SECRET:-MY_SUPER_SECRET_KEY}
-      - JWT_EXPIRATION=${JWT_EXPIRATION:-3600000}
-      - JWT_ISSUER=${JWT_ISSUER:-hackathon-auth-issuer}
+      APP_PORT: "8080"
+      DB_HOST: "postgres"
+      DB_PORT: "5432"
+      DB_NAME: "auth_db"
+      DB_USER: "postgres"
+      DB_PASSWORD: "password"
+      JWT_SECRET: "q3s6v9yB8E2HMcQfTjWnZr4u7x1A9CkLp"
+      JWT_EXPIRATION: "3600000"
+      JWT_ISSUER: "hackathon-issuer"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - auth-network
+    restart: unless-stopped
 
   postgres:
     image: postgres:17.5-alpine
     container_name: auth-postgres
     environment:
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
-      POSTGRES_DB: ${DB_NAME:-auth_db}
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_DB: "auth_db"
     volumes:
-      - postgres_data:/data/postgres
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
       - auth-network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-auth_db}" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d auth_db"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -42,3 +46,6 @@ services:
 networks:
   auth-network:
     driver: bridge
+
+volumes:
+  postgres_data:

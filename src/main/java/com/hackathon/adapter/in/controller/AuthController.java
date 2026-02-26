@@ -47,7 +47,8 @@ public class AuthController {
 
     @GetMapping("/users/{id}")
     public ResponseEntity<UserResponse> getUser(@PathVariable Long id) {
-        User user = getUserUseCase.execute(id);
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = getUserUseCase.execute(id, username);
         return ResponseEntity.ok(toResponse(user));
     }
 
