@@ -99,7 +99,7 @@ DB_NAME=auth_db
 DB_USER=user
 DB_PASSWORD=password
 
-JWT_SECRET=q3s6v9y$B&E)H@McQfTjWnZr4u7x!A%C
+JWT_SECRET=qAkwER/knmSv1FZ0qzH+E9EEj5YsLn5zm9M/fY8RH9c=
 JWT_EXPIRATION=3600000
 JWT_ISSUER=hackathon-issuer
 ```

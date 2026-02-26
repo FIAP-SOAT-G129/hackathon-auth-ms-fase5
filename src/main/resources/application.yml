@@ -14,7 +14,7 @@ spring:
     show-sql: true
 
 jwt:
-  secret: ${JWT_SECRET:q3s6v9y$B&E)H@McQfTjWnZr4u7x!A%C}
+  secret: ${JWT_SECRET:qAkwER/knmSv1FZ0qzH+E9EEj5YsLn5zm9M/fY8RH9c=}
   expiration: ${JWT_EXPIRATION:3600000}
   issuer: ${JWT_ISSUER:hackathon-issuer}
 
