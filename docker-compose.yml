@@ -13,7 +13,7 @@ services:
       DB_NAME: "auth_db"
       DB_USER: "postgres"
       DB_PASSWORD: "password"
-      JWT_SECRET: "q3s6v9yB8E2HMcQfTjWnZr4u7x1A9CkLp"
+      JWT_SECRET: "qAkwER/knmSv1FZ0qzH+E9EEj5YsLn5zm9M/fY8RH9c="
       JWT_EXPIRATION: "3600000"
       JWT_ISSUER: "hackathon-issuer"
     depends_on:
