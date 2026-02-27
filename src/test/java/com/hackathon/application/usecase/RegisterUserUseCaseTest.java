@@ -35,12 +35,11 @@ class RegisterUserUseCaseTest {
     @Test
     void execute_ShouldRegisterUser_WhenDataIsValid() {
         User user = User.builder()
-                .username("testuser")
+                .name("testuser")
                 .email("test@example.com")
                 .password("password")
                 .build();
 
-        when(userRepository.findByUsername(user.getUsername())).thenReturn(Optional.empty());
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
         when(passwordEncoder.encode(user.getPassword())).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(user);
@@ -54,8 +53,8 @@ class RegisterUserUseCaseTest {
 
     @Test
     void execute_ShouldThrowException_WhenUsernameAlreadyExists() {
-        User user = User.builder().username("existing").build();
-        when(userRepository.findByUsername("existing")).thenReturn(Optional.of(user));
+        User user = User.builder().email("existing@example.com").build();
+        when(userRepository.findByEmail("existing@example.com")).thenReturn(Optional.of(user));
 
         assertThrows(UserAlreadyExistsException.class, () -> registerUserUseCase.execute(user));
     }
