@@ -7,8 +7,8 @@ import com.hackathon.application.usecase.RegisterUserUseCase;
 import com.hackathon.domain.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,7 +39,7 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> me(@AuthenticationPrincipal String userId) {
-        if(userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if(userId == null) throw new BadCredentialsException("Invalid user id");
         
         User user = getUserUseCase.execute(Long.valueOf(userId));
         return ResponseEntity.ok(toResponse(user));
