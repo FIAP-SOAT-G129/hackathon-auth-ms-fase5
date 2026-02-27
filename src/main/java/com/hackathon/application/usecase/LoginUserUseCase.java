@@ -12,20 +12,16 @@ import org.springframework.stereotype.Service;
 public class LoginUserUseCase {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
+    private final TokenUseCase tokenUseCase;
 
-    public String execute(String username, String password) {
-        User user = userRepository.findByUsername(username)
+    public String execute(String email, String password) {
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AuthenticationException("Invalid username or password"));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new AuthenticationException("Invalid username or password");
         }
 
-        return jwtService.generateToken(user);
-    }
-
-    public interface JwtService {
-        String generateToken(User user);
+        return tokenUseCase.generateToken(user);
     }
 }

@@ -15,8 +15,8 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET:qAkwER/knmSv1FZ0qzH+E9EEj5YsLn5zm9M/fY8RH9c=}
-  expiration: ${JWT_EXPIRATION:3600000}
   issuer: ${JWT_ISSUER:hackathon-issuer}
+  expiration: ${JWT_EXPIRATION:3600000}
 
 server:
   port: ${APP_PORT:8080}
