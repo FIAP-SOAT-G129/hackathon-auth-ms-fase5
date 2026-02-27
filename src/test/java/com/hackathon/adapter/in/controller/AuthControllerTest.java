@@ -6,6 +6,7 @@ import com.hackathon.adapter.in.dto.UserRegistrationRequest;
 import com.hackathon.application.usecase.GetUserUseCase;
 import com.hackathon.application.usecase.LoginUserUseCase;
 import com.hackathon.application.usecase.RegisterUserUseCase;
+import com.hackathon.application.usecase.TokenUseCase;
 import com.hackathon.domain.entity.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,9 @@ class AuthControllerTest {
 
     @MockBean
     private GetUserUseCase getUserUseCase;
+
+    @MockBean
+    private TokenUseCase tokenUseCase;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -79,20 +83,27 @@ class AuthControllerTest {
     }
 
     @Test
-    void me_ShouldReturnUserDetails_WhenHeadersArePresent() throws Exception {
-        String userId = "1";
-        String userEmail = "test@test.com";
-        User user = User.builder().id(1L).name("testuser").email(userEmail).build();
+    void getUser_ShouldReturnUserById_WhenValidJWT() throws Exception {
+
+        String fakeToken = "valid.jwt.token";
+        String userId = "99";
+
+        when(tokenUseCase.extractSub(fakeToken)).thenReturn(userId);
+
+        User user = User.builder()
+                .id(1L)
+                .name("admin")
+                .email("admin@test.com")
+                .build();
 
         when(getUserUseCase.execute(1L)).thenReturn(user);
 
-        // Em vez de @WithMockUser, passamos os headers que o seu AuthenticationFilter lê
-        mockMvc.perform(get("/auth/me")
-                        .header("x-user-id", userId)
-                        .header("x-user-email", userEmail))
+        mockMvc.perform(get("/auth/users/1")
+                        .header("Authorization", "Bearer " + fakeToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("testuser"))
-                .andExpect(jsonPath("$.email").value(userEmail));
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("admin"))
+                .andExpect(jsonPath("$.email").value("admin@test.com"));
     }
 
     @Test

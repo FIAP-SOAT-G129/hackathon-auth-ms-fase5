@@ -1,5 +1,6 @@
 package com.hackathon.config;
 
+import com.hackathon.application.usecase.TokenUseCase;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,7 +18,9 @@ import java.util.Collections;
 
 @Component
 @RequiredArgsConstructor
-public class AuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private final TokenUseCase jwtService;
 
     @Override
     protected void doFilterInternal(
@@ -25,14 +28,19 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        String userId = request.getHeader("x-user-id");
-        String userEmail = request.getHeader("x-user-email");
+        final String authHeader = request.getHeader("Authorization");
 
-        if (userId != null && userEmail != null) {
-            UserPrincipal userPrincipal = new UserPrincipal(userId, userEmail);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
+        String jwtToken = authHeader.substring(7);
+        String userId = jwtService.extractSub(jwtToken);
+        
+        if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                    userPrincipal, null, Collections.emptyList()
+                    userId, null, Collections.emptyList()
             );
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authToken);
@@ -40,9 +48,4 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
-
-    public record UserPrincipal(
-            String id,
-            String email
-    ) {}
 }
