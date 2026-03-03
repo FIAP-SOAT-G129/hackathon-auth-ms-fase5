@@ -8,14 +8,18 @@ import com.hackathon.application.usecase.LoginUserUseCase;
 import com.hackathon.application.usecase.RegisterUserUseCase;
 import com.hackathon.application.usecase.TokenUseCase;
 import com.hackathon.domain.entity.User;
+import com.hackathon.domain.exception.UserNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -26,7 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@WithMockUser
 class AuthControllerTest {
 
     @Autowired
@@ -48,7 +51,7 @@ class AuthControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
-    void register_ShouldReturn200() throws Exception {
+    void register_ShouldReturn200_WhenRequestIsValid() throws Exception {
         UserRegistrationRequest request = new UserRegistrationRequest();
         request.setName("test");
         request.setEmail("test@test.com");
@@ -62,44 +65,76 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.name").value("test"));
+                .andExpect(jsonPath("$.name").value("test"))
+                .andExpect(jsonPath("$.email").value("test@test.com"));
     }
 
     @Test
-    void login_ShouldReturnToken() throws Exception {
+    void register_ShouldReturn400_WhenBodyIsInvalid() throws Exception {
+        UserRegistrationRequest request = new UserRegistrationRequest();
+
+        mockMvc.perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void login_ShouldReturn200_WhenCredentialsAreValid() throws Exception {
         LoginRequest request = new LoginRequest();
         request.setEmail("test@test.com");
         request.setPassword("password");
 
-        String fakeToken = "eyJhbGciOiJIUzI1NiJ9.fake.token";
-
-        when(loginUserUseCase.execute("test@test.com", "password")).thenReturn(fakeToken);
+        when(loginUserUseCase.execute("test@test.com", "password")).thenReturn("valid.jwt.token");
 
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value(fakeToken));
+                .andExpect(jsonPath("$.token").value("valid.jwt.token"));
     }
 
     @Test
-    void getUser_ShouldReturnUserById_WhenValidJWT() throws Exception {
+    void login_ShouldReturn400_WhenBodyIsInvalid() throws Exception {
+        LoginRequest request = new LoginRequest();
 
-        String fakeToken = "valid.jwt.token";
-        String userId = "99";
+        mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
 
-        when(tokenUseCase.extractSub(fakeToken)).thenReturn(userId);
+    @Test
+    void me_ShouldReturn200_WhenAuthenticated() throws Exception {
+        User user = User.builder().id(1L).name("test").email("test@test.com").build();
+        when(getUserUseCase.execute(1L)).thenReturn(user);
 
-        User user = User.builder()
-                .id(1L)
-                .name("admin")
-                .email("admin@test.com")
-                .build();
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                "1", null, Collections.emptyList()
+        );
 
+        mockMvc.perform(get("/auth/me")
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(auth)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("test"))
+                .andExpect(jsonPath("$.email").value("test@test.com"));
+    }
+
+    @Test
+    void me_ShouldReturn401_WhenNotAuthenticated() throws Exception {
+        mockMvc.perform(get("/auth/me"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("Unauthorized"));
+    }
+
+    @Test
+    void getUser_ShouldReturn200_WhenUserExists() throws Exception {
+        User user = User.builder().id(1L).name("admin").email("admin@test.com").build();
         when(getUserUseCase.execute(1L)).thenReturn(user);
 
         mockMvc.perform(get("/auth/users/1")
-                        .header("Authorization", "Bearer " + fakeToken))
+                        .with(SecurityMockMvcRequestPostProcessors.user("1")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("admin"))
@@ -107,22 +142,12 @@ class AuthControllerTest {
     }
 
     @Test
-    void getUser_ShouldReturnUserById() throws Exception {
-        User user = User.builder().id(1L).name("admin").email("admin@test.com").build();
-        when(getUserUseCase.execute(1L)).thenReturn(user);
+    void getUser_ShouldReturn404_WhenUserNotFound() throws Exception {
+        when(getUserUseCase.execute(99L)).thenThrow(new UserNotFoundException("User not found with id: 99"));
 
-        // Note: Se esta rota for protegida, ela também precisa dos headers ou do @WithMockUser
-        mockMvc.perform(get("/auth/users/1")
-                        .header("x-user-id", "99") // Simulando um usuário autenticado acessando outro
-                        .header("x-user-email", "any@test.com"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.name").value("admin"));
-    }
-
-    @Test
-    void me_ShouldReturn403_WhenHeadersAreMissing() throws Exception {
-        mockMvc.perform(get("/auth/me"))
-                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/auth/users/99")
+                        .with(SecurityMockMvcRequestPostProcessors.user("1")))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("User not found with id: 99"));
     }
 }
