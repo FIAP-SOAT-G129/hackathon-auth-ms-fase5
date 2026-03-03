@@ -39,8 +39,6 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> me(@AuthenticationPrincipal String userId) {
-        if(userId == null) throw new BadCredentialsException("Invalid user id");
-        
         User user = getUserUseCase.execute(Long.valueOf(userId));
         return ResponseEntity.ok(toResponse(user));
     }

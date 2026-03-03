@@ -115,6 +115,15 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>com/hackathon/adapter/in/dto/**</exclude>
+                        <exclude>com/hackathon/domain/entity/**</exclude>
+                        <exclude>com/hackathon/adapter/out/repository/**</exclude>
+                        <exclude>com/hackathon/AuthServiceApplication.class</exclude>
+                        <exclude>com/hackathon/domain/exception/**</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
@@ -132,6 +141,7 @@
                             <formats>
                                 <format>XML</format>
                                 <format>CSV</format>
+                                <format>HTML</format>
                             </formats>
                         </configuration>
                     </execution>
